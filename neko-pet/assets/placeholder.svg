@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 397 481" width="397" height="481">
+  <!-- 占位图：还没放形象图时显示。换成自己的图以后用不到它 -->
+  <g fill="rgba(255,252,246,0.82)" stroke="#2E3366" stroke-width="5" stroke-dasharray="14 10" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 身体 -->
+    <path d="M92,474 Q96,346 198,338 Q300,346 305,474 Z"/>
+    <!-- 头和耳朵 -->
+    <path d="M86,206 L98,74 L168,128 Q198,118 228,128 L298,74 L310,206 Q318,326 198,338 Q78,326 86,206 Z"/>
+  </g>
+  <!-- 眼睛和嘴 -->
+  <g fill="none" stroke="#2E3366" stroke-width="6" stroke-linecap="round">
+    <path d="M146,232 Q162,246 178,232"/>
+    <path d="M218,232 Q234,246 250,232"/>
+    <path d="M186,276 Q192,284 198,276 Q204,284 210,276"/>
+  </g>
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" text-anchor="middle" fill="#2E3366">
+    <text x="198" y="404" font-size="26" font-weight="700">形象图还没放</text>
+    <text x="198" y="440" font-size="17">见 README「配置形象」</text>
+  </g>
+</svg>

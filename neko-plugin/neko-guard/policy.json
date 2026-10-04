@@ -1,0 +1,17 @@
+{
+  "_说明": "改完存盘立刻生效，不用重启。readable 和 writable 里的路径可以写相对仓库根目录的（比如 neko），也可以写绝对路径（反斜杠写两个）。小白右键菜单里的看屏幕、联网、记忆三个开关改的就是这个文件。",
+  "readable": [
+    "neko"
+  ],
+  "writable": [
+    "neko/memory"
+  ],
+  "_memoryWrite说明": "auto 她自己决定记什么 / ask 每次记之前问你 / off 不许写",
+  "memoryWrite": "auto",
+  "_network说明": "off 不联网 / search 只许搜索 / ask 搜索随便，打开具体网页前问你 / on 全放开",
+  "network": "ask",
+  "_screen说明": "on 允许看 / ask 每次先问你 / off 不许看。小白开着定时看屏幕时会自动设成 on",
+  "screen": "on",
+  "unknown": "ask",
+  "debug": false
+}
