@@ -246,6 +246,8 @@ async function startDsh() {
   log(`启动：${CONFIG.dshCommand}  （工作目录 ${CONFIG.workspace}）`)
   dshProc = spawn(CONFIG.dshCommand, {
     cwd: CONFIG.workspace, shell: true, windowsHide: true,
+    // Linux/Mac 下让 dsh 自成进程组，killDsh 里的 kill(-pid) 才能连带杀掉整棵子进程树
+    detached: process.platform !== 'win32',
     env: { ...process.env, NEKO_HOME: REPO, NEKO_WORKSPACE: CONFIG.workspace },
   })
 
