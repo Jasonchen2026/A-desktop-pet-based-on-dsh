@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' file: data:; media-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' file:">
+<title>小白</title>
+<style>
+  /* 颜色取自小白身上：斗篷的藏青、星星和铃铛的金、头发的米白 */
+  :root {
+    --ink: #2B2540;
+    --cape: #2E3366;
+    --gold: #D9A441;
+    --cream: #FFF8F0;
+    --collar: #C8505A;
+
+    --fs: 14px;
+    --text: rgba(43, 37, 64, 1);
+    --her-bg: rgba(255, 253, 248, .82);
+    --me-bg: rgba(228, 231, 247, .82);
+    --panel-bg: rgba(255, 248, 240, .22);
+
+    --chat-w: 360px;
+    --chat-h: 470px;
+    --pet-w: 220px;
+    --sprite-h: 266px;
+    --top: 36px;
+    --ar: 397 / 481;
+
+    --ui: "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; font-family: var(--ui); }
+  button, textarea, input { font-family: inherit; }
+  #root { position: absolute; inset: 0; }
+
+  /* ---------------- 左右布局 ---------------- */
+  #chat   { position: absolute; bottom: 0; width: var(--chat-w); height: var(--chat-h); }
+  #petbox { position: absolute; bottom: 0; width: var(--pet-w); height: calc(var(--sprite-h) + var(--top)); }
+  .side-left  #chat { left: 0; }   .side-left  #petbox { right: 0; }
+  .side-right #chat { right: 0; }  .side-right #petbox { left: 0; }
+
+  /* ---------------- 小白 ---------------- */
+  #stage {
+    position: absolute; left: 0; right: 0; bottom: 0; height: var(--sprite-h);
+    cursor: grab; user-select: none; -webkit-user-select: none;
+  }
+  #stage.dragging { cursor: grabbing; }
+  #sprite {
+    position: absolute; inset: 0; transform-origin: 50% 100%;
+    animation: breathe 4.2s ease-in-out infinite;
+  }
+  #sprite.talking { animation: talk .42s ease-in-out infinite; }
+  @keyframes breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.016); } }
+  @keyframes talk { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  .layer { position: absolute; inset: 0; opacity: 0; transition: opacity .16s ease; }
+  .layer.on { opacity: 1; }
+  .layer > img, .layer > video, .layer > canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; object-position: 50% 100%; display: block; pointer-events: none;
+  }
+  .layer.sheet { background-repeat: no-repeat; }
+
+  #status {
+    position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+    max-width: 96%; padding: 5px 11px; border-radius: 13px;
+    background: var(--cream); color: var(--ink); font-size: 12px; line-height: 1.45;
+    box-shadow: 0 2px 0 rgba(46, 51, 102, .25);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none; z-index: 3;
+  }
+  #status.show { display: block; }
+  #status.error { color: #9E2F45; box-shadow: 0 2px 0 var(--collar); }
+
+  #dot {
+    position: absolute; top: calc(var(--top) + 40px); right: 34px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--collar); border: 2px solid var(--cream); display: none; z-index: 3;
+  }
+  #dot.show { display: block; animation: ping 1.6s ease-in-out infinite; }
+  @keyframes ping { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+
+  /* 定时看屏幕时亮着，每看一次闪一下 */
+  #eye {
+    position: absolute; top: calc(var(--top) + 36px); left: 26px; z-index: 3;
+    font-size: 11px; line-height: 1; padding: 4px 6px; border-radius: 9px;
+    background: rgba(46, 51, 102, .78); color: var(--cream); display: none;
+    transition: box-shadow .2s ease;
+  }
+  #eye.show { display: block; }
+  #eye.flash { box-shadow: 0 0 0 4px rgba(217, 164, 65, .55); }
+  .dormant #eye, .dormant #dot { display: none !important; }
+
+  /* 后台在想几件事 */
+  #thinkb {
+    position: absolute; top: calc(var(--top) + 60px); left: 22px; z-index: 3;
+    font-size: 11px; line-height: 1; padding: 4px 7px; border-radius: 9px;
+    background: rgba(217, 164, 65, .92); color: var(--ink); display: none;
+  }
+  #thinkb.show { display: block; animation: ping 2.4s ease-in-out infinite; }
+
+  /* 后台想好的完整结果 */
+  .thinkcard {
+    align-self: stretch; padding: 8px 11px; border-radius: 12px;
+    background: var(--her-bg); border-left: 3px solid var(--cape);
+    font-size: calc(var(--fs) - 1px); color: var(--text); line-height: 1.55;
+  }
+  .thinkcard .th { font-weight: 600; margin-bottom: 4px; }
+  .thinkcard .tb { white-space: pre-wrap; word-break: break-word; max-height: 4.7em; overflow: hidden; }
+  .thinkcard.open .tb { max-height: none; }
+  .thinkcard .tm {
+    margin-top: 6px; border: 0; border-radius: 8px; padding: 3px 10px; cursor: pointer; font-size: 12px;
+    background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(46, 51, 102, .35);
+  }
+  .dormant #sprite { animation-duration: 6.5s; }
+
+  /* ---------------- 对话框 ---------------- */
+  #panel {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    border-radius: 18px; background: var(--panel-bg);
+  }
+  #chat.open #panel { display: flex; }
+
+  #head {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px 6px 12px;
+    cursor: grab; user-select: none; -webkit-user-select: none;
+  }
+  #head .name {
+    font-size: 13px; color: var(--ink); background: var(--her-bg);
+    padding: 3px 10px; border-radius: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  #conn { width: 7px; height: 7px; border-radius: 50%; background: #A9A4B8; }
+  #conn.on { background: var(--gold); }
+  #conn.busy { background: var(--gold); animation: ping 1s ease-in-out infinite; }
+  #head .spacer { flex: 1; }
+  .icon {
+    width: 26px; height: 26px; border-radius: 9px; border: 0; cursor: pointer;
+    background: var(--her-bg); color: var(--ink); font-size: 13px; line-height: 26px; padding: 0;
+  }
+  .icon:hover { background: var(--cream); }
+  .icon:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+  #log {
+    flex: 1; overflow-y: auto; padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 7px;
+    scrollbar-width: thin; scrollbar-color: rgba(46, 51, 102, .35) transparent;
+  }
+  #log::-webkit-scrollbar { width: 6px; }
+  #log::-webkit-scrollbar-thumb { background: rgba(46, 51, 102, .3); border-radius: 3px; }
+
+  .row { display: flex; }
+  .side-left  .row.her { justify-content: flex-end; }
+  .side-left  .row.me  { justify-content: flex-start; }
+  .side-right .row.her { justify-content: flex-start; }
+  .side-right .row.me  { justify-content: flex-end; }
+
+  .b {
+    max-width: 86%; padding: 7px 11px; border-radius: 14px;
+    font-size: var(--fs); line-height: 1.55; color: var(--text);
+    white-space: pre-wrap; word-break: break-word;
+    box-shadow: 0 1px 0 rgba(43, 37, 64, .12);
+  }
+  .b.her { background: var(--her-bg); }
+  .b.me  { background: var(--me-bg); }
+  .side-left  .b.her { border-bottom-right-radius: 5px; }
+  .side-right .b.her { border-bottom-left-radius: 5px; }
+  .b.failed { outline: 1.5px dashed var(--collar); }
+
+  .note {
+    align-self: center; max-width: 90%; text-align: center;
+    font-size: calc(var(--fs) - 2px); color: var(--text);
+    background: var(--her-bg); opacity: .85; padding: 3px 10px; border-radius: 10px;
+  }
+  .divider { align-self: center; font-size: 11px; color: var(--text); opacity: .55; padding: 2px 0; }
+
+  .card {
+    align-self: stretch; padding: 9px 11px; border-radius: 12px;
+    background: var(--her-bg); border-left: 3px solid var(--gold);
+    font-size: var(--fs); color: var(--text); line-height: 1.5;
+  }
+  .card .what { margin: 3px 0 8px; word-break: break-all; }
+  .card .acts { display: flex; gap: 8px; }
+  .card button {
+    border: 0; border-radius: 9px; padding: 5px 12px; cursor: pointer; font-size: 13px;
+  }
+  .card .yes { background: var(--cape); color: var(--cream); }
+  .card .no  { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(46, 51, 102, .35); }
+  .card.done .acts { display: none; }
+  .card .result { font-size: 12px; opacity: .7; }
+
+  .typing { display: inline-flex; gap: 4px; padding: 10px 12px; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); opacity: .35; animation: blink 1.2s infinite; }
+  .typing i:nth-child(2) { animation-delay: .2s; }
+  .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 100% { opacity: .2; } 40% { opacity: .7; } }
+
+  #composer { display: flex; gap: 6px; padding: 6px 10px 10px; align-items: flex-end; }
+  #input {
+    flex: 1; resize: none; max-height: 96px; min-height: 22px;
+    padding: 8px 10px; border-radius: 12px; border: 1px solid rgba(46, 51, 102, .22);
+    background: var(--her-bg); color: var(--text); font-size: var(--fs); line-height: 1.45;
+  }
+  #input::placeholder { color: var(--text); opacity: .45; }
+  #send {
+    border: 0; border-radius: 12px; padding: 8px 14px; cursor: pointer;
+    background: var(--cape); color: var(--cream); font-size: 14px;
+  }
+  #send.stop { background: var(--collar); }
+
+  /* 对话框收着时，她的话飘在头边 */
+  #speech {
+    position: absolute; bottom: calc(var(--sprite-h) * .58); max-width: 280px;
+    padding: 9px 13px; border-radius: 16px; background: var(--her-bg);
+    color: var(--text); font-size: var(--fs); line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word; cursor: pointer;
+    box-shadow: 0 1px 0 rgba(43, 37, 64, .12);
+    display: none; max-height: 9.5em; overflow: hidden;
+  }
+  .side-left  #speech { right: 6px; border-bottom-right-radius: 5px; }
+  .side-right #speech { left: 6px;  border-bottom-left-radius: 5px; }
+  #speech.show { display: block; animation: rise .22s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* 外观设置 */
+  #style-pop {
+    position: absolute; top: 42px; width: 268px; padding: 12px 14px; border-radius: 14px;
+    background: rgba(255, 248, 240, .97); color: var(--ink); font-size: 13px;
+    box-shadow: 0 6px 20px rgba(43, 37, 64, .22); display: none; z-index: 5;
+  }
+  .side-left  #style-pop { right: 8px; }
+  .side-right #style-pop { left: 8px; }
+  #style-pop.open { display: block; }
+  #style-pop label { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 8px; margin: 7px 0; }
+  #style-pop input[type=range] { width: 100%; accent-color: var(--cape); }
+  #style-pop input[type=color] { width: 44px; height: 24px; border: 0; padding: 0; background: none; justify-self: start; }
+  #style-pop input[type=checkbox] { justify-self: start; width: 16px; height: 16px; accent-color: var(--cape); }
+  #style-pop .foot { display: flex; justify-content: space-between; margin-top: 10px; }
+  #style-pop .foot button { border: 0; border-radius: 9px; padding: 5px 12px; cursor: pointer; background: var(--cape); color: var(--cream); }
+  #style-pop .foot button.plain { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(46, 51, 102, .35); }
+
+  @media (prefers-reduced-motion: reduce) {
+    #sprite, #sprite.talking, #dot.show, #conn.busy, .typing i, #speech.show, #thinkb.show { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root" class="side-left">
+  <section id="chat">
+    <div id="panel" class="hit">
+      <header id="head">
+        <span class="name"><span id="conn"></span><span id="mood">小白</span></span>
+        <span class="spacer"></span>
+        <button class="icon" id="btn-style" title="外观" aria-label="外观">⚙</button>
+        <button class="icon" id="btn-close" title="收起" aria-label="收起对话框">—</button>
+      </header>
+      <div id="log" aria-live="polite"></div>
+      <div id="composer">
+        <textarea id="input" rows="1" placeholder="跟小白说点什么…" title="Enter 发送，Shift+Enter 换行"></textarea>
+        <button id="send">发送</button>
+      </div>
+    </div>
+    <div id="speech" class="hit" role="status"></div>
+    <div id="style-pop" class="hit" role="dialog" aria-label="对话框外观"></div>
+  </section>
+
+  <section id="petbox">
+    <div id="status" role="status"></div>
+    <div id="dot" aria-label="有新消息"></div>
+    <div id="eye" title="她每隔几秒会瞄一眼屏幕">👁</div>
+    <div id="thinkb" title="后台正在想的事"></div>
+    <div id="stage" class="hit" title="左键聊天，按住拖动，右键菜单">
+      <div id="sprite" aria-label="小白"></div>
+    </div>
+  </section>
+</div>
+<script src="pet.js"></script>
+</body>
+</html>

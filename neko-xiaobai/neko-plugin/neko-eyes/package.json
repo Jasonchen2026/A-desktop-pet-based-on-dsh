@@ -1,0 +1,9 @@
+{
+  "name": "neko-eyes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "exports": "./index.js",
+  "description": "给小白一个 look_at_screen 工具：通过桌宠截主屏、交给视觉模型看，返回文字描述"
+}

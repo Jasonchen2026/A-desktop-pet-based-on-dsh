@@ -1,0 +1,30 @@
+{
+  "_说明": "大多数情况不用改。路径可以写绝对路径，也可以写相对仓库根目录的路径，留空用默认（workspace 默认是仓库里的 neko，memoryDir 默认是 workspace 下的 memory）。provider 和 model 留空就跟着 dsh 里设的默认模型走。",
+  "workspace": "",
+  "memoryDir": "",
+  "preset": "",
+  "provider": "",
+  "model": "",
+  "_chatReasoning说明": "聊天会话的深度思考：off 关（快，推荐）/ low / high / max。后台思考的强度在下面 thinker 里单独设",
+  "chatReasoning": "off",
+  "port": 0,
+  "approvalTimeoutSec": 180,
+  "screenFreshSec": 120,
+  "imageMode": "both",
+  "_imageMode说明": "both 后台瞄+发消息时细看 / text 只后台瞄 / image 只在发消息时细看",
+  "_proactive说明": "off 不主动搭话 / occasional 偶尔（画面明显变化、离上次至少10分钟、你3分钟内没说话） / active 积极（变化就行、间隔3分钟）",
+  "proactive": "occasional",
+  "_autoLook说明": "她因为屏幕动态自己想看屏幕时的限制；你让她看的不受限",
+  "autoLook": {
+    "maxPerHour": 6,
+    "minGapMin": 3
+  },
+  "_thinker说明": "后台思考：最多同时几件、用多强的深度思考（off/low/high/max）、模型（留空跟聊天的一样）、几分钟没想完算超时、聊天回合超过几秒还没答完就自动转给后台（0 关掉）",
+  "thinker": {
+    "maxConcurrent": 3,
+    "reasoning": "high",
+    "model": "",
+    "timeoutMin": 10,
+    "escalateAfterSec": 20
+  }
+}

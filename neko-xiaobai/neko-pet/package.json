@@ -1,0 +1,13 @@
+{
+  "name": "neko-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "小白的桌面外壳：桌宠形象 + 对话框，后台拉起 dsh",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "latest"
+  }
+}
