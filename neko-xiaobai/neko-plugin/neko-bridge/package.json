@@ -1,9 +1,0 @@
-{
-  "name": "neko-bridge",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "index.js",
-  "exports": "./index.js",
-  "description": "小白桌宠和 dsh 之间的桥：专属会话、消息收发、审批转发、作息通知、记忆和后台思考工具"
-}

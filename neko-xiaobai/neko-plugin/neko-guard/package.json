@@ -1,9 +1,0 @@
-{
-  "name": "neko-guard",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "index.js",
-  "exports": "./index.js",
-  "description": "neko 工作区的权限门：读按白名单，写只许进 memory，命令一律拒，联网和看屏幕按开关"
-}

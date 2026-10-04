@@ -1,5 +1,0 @@
-{
-  "_说明": "截图和看图都由小白桌宠做（模型在 neko-pet/config.json 的 vision 里，key 放在本文件夹的 key.txt）。guardPolicy 留空就用仓库里的 neko-guard/policy.json。",
-  "guardPolicy": "",
-  "logFile": "look-at-screen.log"
-}
