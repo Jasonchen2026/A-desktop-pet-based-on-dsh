@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' file: data:; media-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' file:">
+      content="default-src 'self'; img-src 'self' file: data:; media-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self' file:; font-src 'self' data:; worker-src blob:">
 <title>小白</title>
 <style>
   /* 颜色取自小白身上：斗篷的藏青、星星和铃铛的金、头发的米白 */
@@ -163,6 +163,23 @@
   .side-right .b.her { border-bottom-left-radius: 5px; }
   .b.failed { outline: 1.5px dashed var(--collar); }
 
+  /* markdown 渲染后的气泡（她的消息和后台思考卡片） */
+  .md { white-space: normal; }
+  .md p { margin: 0 0 .55em; }
+  .md > :last-child { margin-bottom: 0; }
+  .md h1, .md h2, .md h3, .md h4 { margin: .5em 0 .3em; font-size: 1.05em; }
+  .md ul, .md ol { margin: .3em 0; padding-left: 1.4em; }
+  .md code { font-family: ui-monospace, Consolas, monospace; font-size: .92em; background: rgba(46, 51, 102, .10); border-radius: 4px; padding: 0 4px; }
+  .md pre { margin: .4em 0; padding: 7px 9px; border-radius: 9px; background: rgba(46, 51, 102, .10); overflow-x: auto; font-size: calc(var(--fs) - 1px); }
+  .md pre code { background: none; padding: 0; }
+  .md blockquote { margin: .3em 0; padding-left: 9px; border-left: 3px solid rgba(46, 51, 102, .3); opacity: .9; }
+  .md table { border-collapse: collapse; margin: .4em 0; font-size: calc(var(--fs) - 1px); }
+  .md th, .md td { border: 1px solid rgba(46, 51, 102, .25); padding: 3px 8px; }
+  .md img { max-width: 100%; }
+  .md hr { border: 0; border-top: 1px solid rgba(46, 51, 102, .2); margin: .5em 0; }
+  .md mjx-container { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+  .md mjx-container[display="true"] { margin: .5em 0; }
+
   .note {
     align-self: center; max-width: 90%; text-align: center;
     font-size: calc(var(--fs) - 2px); color: var(--text);
@@ -270,6 +287,10 @@
     </div>
   </section>
 </div>
+<script src="mathjax-config.js"></script>
+<script src="node_modules/marked/lib/marked.umd.js"></script>
+<script src="node_modules/dompurify/dist/purify.min.js"></script>
+<script src="node_modules/mathjax/tex-svg.js"></script>
 <script src="pet.js"></script>
 </body>
 </html>

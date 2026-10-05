@@ -6,7 +6,7 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, shell, screen, ses
 const path = require('path')
 const fs = require('fs')
 const http = require('http')
-const { spawn, execSync } = require('child_process')
+const { spawn, execSync, execFileSync } = require('child_process')
 const { pathToFileURL } = require('url')
 
 const ROOT = __dirname
@@ -144,6 +144,12 @@ function resolveTag(tag) {
 // ---------- 窗口 ----------
 
 function side() { return loadState().side || CONFIG.chatSide || 'left' }
+// 语音朗读：菜单切换存 state，没存过就用 config 的默认
+function speechOn() { const s = loadState().speech; return typeof s === 'boolean' ? s : (CONFIG.speech?.enabled !== false) }
+function speechCfg() {
+  const c = CONFIG.speech || {}
+  return { enabled: speechOn(), rate: c.rate || 1, pitch: c.pitch || 1, volume: c.volume ?? 1 }
+}
 
 function createPet() {
   const st = loadState()
@@ -191,6 +197,7 @@ function createPet() {
       bubbleSeconds: CONFIG.bubbleSeconds || 10,
       watchSeconds: watchSeconds,
       dormant,
+      speech: speechCfg(),
     })
     if (!dshUrl) status('busy', '正在叫醒小白…')
     else if (!bridgeOk) status('busy', '正在连上小白…')
@@ -246,6 +253,8 @@ async function startDsh() {
   log(`启动：${CONFIG.dshCommand}  （工作目录 ${CONFIG.workspace}）`)
   dshProc = spawn(CONFIG.dshCommand, {
     cwd: CONFIG.workspace, shell: true, windowsHide: true,
+    // Linux/Mac 下让 dsh 自成进程组，killDsh 里的 kill(-pid) 才能连带杀掉整棵子进程树
+    detached: process.platform !== 'win32',
     env: { ...process.env, NEKO_HOME: REPO, NEKO_WORKSPACE: CONFIG.workspace },
   })
 
@@ -753,6 +762,7 @@ function buildMenu() {
     { label: s.chatOpen ? '收起对话框' : '打开对话框', click: () => sendToPet('chat:toggle') },
     { label: '对话框外观…', click: () => sendToPet('chat:style') },
     { label: side() === 'left' ? '对话框挪到右边' : '对话框挪到左边', click: flipSide },
+    { label: '语音朗读', type: 'checkbox', checked: speechOn(), click: (mi) => { saveState({ speech: mi.checked }); sendToPet('speech:set', { enabled: mi.checked }) } },
     { type: 'separator' },
     ...permItems,
     { type: 'separator' },
@@ -791,6 +801,32 @@ ipcMain.on('style:save', (_e, style) => saveState({ style }))
 
 ipcMain.on('pet:wake', () => endNap())
 
+// ---------- 朗读的后备方案：Linux 上 Chromium 拿不到语音，用 speech-dispatcher ----------
+// espeak-ng 有中文（cmn）就指定它，免得用英语引擎念中文
+const SAY_LANG = (() => {
+  try { return /^\s*\d+\s+cmn\s/m.test(execFileSync('espeak-ng', ['--voices'], { encoding: 'utf8', timeout: 3000 })) ? 'cmn' : '' } catch { return '' }
+})()
+let sayProc = null
+function stopSay() { if (sayProc) { try { sayProc.kill() } catch {} sayProc = null } }
+ipcMain.on('speech:say', (_e, text, cfg = {}) => {
+  stopSay()
+  const t = String(text || '').slice(0, 300)
+  if (!t) return
+  const args = [
+    '-r', String(Math.round(((cfg.rate || 1) - 1) * 100)),
+    '-p', String(Math.round(((cfg.pitch || 1) - 1) * 100)),
+    '-m', 'none',
+    ...(SAY_LANG ? ['-l', SAY_LANG] : []),
+    t,
+  ]
+  try {
+    sayProc = spawn('spd-say', args)
+    sayProc.on('exit', () => { sayProc = null })
+    sayProc.on('error', (e) => { log(`spd-say 起不来：${e.message}`); sayProc = null })
+  } catch (e) { log(`spd-say 起不来：${e.message}`) }
+})
+ipcMain.on('speech:stop', stopSay)
+
 ipcMain.handle('chat:send', async (_e, text) => {
   const t = String(text || '')
   if (dormant) await endNap({ greet: false })
@@ -828,6 +864,6 @@ if (!app.requestSingleInstanceLock()) {
     startDsh()
   })
 
-  app.on('before-quit', () => { quitting = true; stopWatcher(); killDsh(); if (tray) { tray.destroy(); tray = null } })
+  app.on('before-quit', () => { quitting = true; stopWatcher(); stopSay(); killDsh(); if (tray) { tray.destroy(); tray = null } })
   app.on('window-all-closed', () => {})
 }

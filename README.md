@@ -244,7 +244,7 @@ window.NekoPet.registerRenderer('blink', (layer, spec) => {
 
 `neko/rules/memory-rules.md` 管的是行为：记忆怎么记、消息开头那些标记是什么意思、屏幕动态来了怎么处理、什么时候交给后台思考。它和人设一起放进系统提示。
 
-改的时候注意，下面这几个标记程序里也在用，名字别改：`【系统通知】`、`【屏幕动态】`、`〔安静〕`、`【后台思考任务】`、`【后台思考完成】`。
+改的时候注意，下面这几个标记程序里也在用，名字别改：`【系统通知】`、`【屏幕动态】`、`〔安静〕`、`【后台思考任务】`、`【后台思考完成】`、`〔朗读〕`。
 
 ### 改完要知道的
 
@@ -295,6 +295,7 @@ window.NekoPet.registerRenderer('blink', (layer, spec) => {
 - 把小白藏起来 / 叫出来
 - 让她打个盹 / 叫醒她。打盹时她藏进托盘，图标换成闭眼的，不看屏幕、不主动开口、不花钱
 - 打开或收起对话框、对话框外观、对话框挪到左边或右边
+- 语音朗读：她说完话后，把她自己写的〔朗读〕口语总结读出来；她忘写就读前两句。Linux 上 Chromium 调不到系统语音，会自动改用 speech-dispatcher（需要装 speech-dispatcher 和 espeak-ng）
 - 看屏幕：每 1、2、5、20 秒瞄一眼，或者未经允许不截屏
 - 联网、记忆：见上面权限一节
 - 总在最前、打开 dsh 界面、在浏览器里打开 dsh、看日志
@@ -327,6 +328,7 @@ window.NekoPet.registerRenderer('blink', (layer, spec) => {
 | `screenWatch` | 看屏幕的频率、画面变化阈值、每分钟上限、离开多久暂停、跳过的窗口关键词、哪些话会触发细看 |
 | `vision` | 看屏幕用的模型：`baseUrl`、`model`、`maxTokens`、`keyFile`（留空读 neko-eyes 的 key.txt） |
 | `expressions` `tagMap` `rendererScripts` | 见"配置形象" |
+| `speech` | 语音朗读：`enabled` 首次启动的默认开关、`rate` 语速、`pitch` 音调、`volume` 音量 |
 
 ### neko-plugin/neko-bridge/config.json
 

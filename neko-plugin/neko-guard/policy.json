@@ -11,7 +11,7 @@
   "_network说明": "off 不联网 / search 只许搜索 / ask 搜索随便，打开具体网页前问你 / on 全放开",
   "network": "ask",
   "_screen说明": "on 允许看 / ask 每次先问你 / off 不许看。小白开着定时看屏幕时会自动设成 on",
-  "screen": "on",
+  "screen": "ask",
   "unknown": "ask",
   "debug": false
 }

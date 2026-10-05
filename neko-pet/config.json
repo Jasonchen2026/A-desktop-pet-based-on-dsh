@@ -22,7 +22,7 @@
   "sleepWaitSeconds": 25,
   "screenWatch": {
     "_说明": "定时看屏幕。画面没变就不调用模型；你离开电脑一段时间、锁屏、或者开着下面这些关键词的窗口时，她不看",
-    "defaultSeconds": 5,
+    "defaultSeconds": 0,
     "imageWidth": 1024,
     "changeThreshold": 3,
     "maxCallsPerMinute": 12,
@@ -78,6 +78,13 @@
     "model": "deepseek-flash",
     "maxTokens": 120,
     "keyFile": ""
+  },
+  "speech": {
+    "_说明": "语音朗读：她说完话后，读她自己写的〔朗读〕总结（她忘了写就读前两句）。enabled 是首次启动的默认开关，以后以右键菜单里的为准",
+    "enabled": true,
+    "rate": 1,
+    "pitch": 1.1,
+    "volume": 1
   },
   "expressions": {
     "平静": "assets/calm.png",
