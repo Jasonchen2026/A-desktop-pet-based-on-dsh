@@ -1,0 +1,8 @@
+# 启动脚本是 UTF-16 编码（中文提示框要靠它），别让 git 改动它
+*.vbs binary
+*.png binary
+*.js   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.svg  text eol=lf
+*.html text eol=lf
