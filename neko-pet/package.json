@@ -9,10 +9,5 @@
   },
   "devDependencies": {
     "electron": "latest"
-  },
-  "dependencies": {
-    "dompurify": "^3.4.16",
-    "marked": "^18.0.14",
-    "mathjax": "^4.1.3"
   }
 }

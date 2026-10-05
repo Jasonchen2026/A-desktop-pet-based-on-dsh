@@ -131,10 +131,7 @@ function applyStyle() {
   r.setProperty('--her-bg', rgba(style.bubbleColor, style.bubbleOpacity))
   r.setProperty('--me-bg', rgba(style.userColor, style.bubbleOpacity))
   r.setProperty('--panel-bg', rgba(style.panelColor, style.panelOpacity))
-  document.querySelectorAll('[data-raw]').forEach(el => {
-    if (el.classList.contains('her')) renderMd(el, display(el.dataset.raw))
-    else { el.classList.remove('md'); el.textContent = display(el.dataset.raw) }
-  })
+  document.querySelectorAll('[data-raw]').forEach(el => { el.textContent = display(el.dataset.raw) })
 }
 
 const STYLE_FIELDS = [
@@ -178,56 +175,11 @@ function buildStylePop() {
 
 const TAG_RE = /\[([\u4e00-\u9fa5]{1,4})\]/g
 const display = (raw) => {
-  const t = String(raw).replace(/〔朗读〕[\s\S]*$/g, '').replace(/〔安静〕/g, '')
+  const t = String(raw).replace(/〔安静〕/g, '')
   return (style.showTags ? t : t.replace(/\[[\u4e00-\u9fa5]{1,4}\]\s*/g, '')).trim()
 }
 // 她选择不说话的回合：去掉表情标签后只剩〔安静〕或者什么都没有
 const looksSilent = (raw) => /^〔?安?静?〕?$/.test(String(raw).replace(/\[[\u4e00-\u9fa5]{1,4}\]/g, '').replace(/\s+/g, ''))
-
-// 她的完整消息走 markdown + MathJax 渲染；流式途中和自己发的保持纯文本
-function renderMd(el, raw) {
-  if (!window.marked || !window.DOMPurify) { el.textContent = raw; return }
-  el.classList.add('md')
-  el.innerHTML = DOMPurify.sanitize(marked.parse(raw, { breaks: true }))
-  if (window.MathJax?.typesetPromise) MathJax.typesetPromise([el]).catch(() => {})
-}
-
-// ---- 语音朗读：优先读她自己写的〔朗读〕总结，没写就念前两句 ----
-let speechCfg = { enabled: false, rate: 1, pitch: 1, volume: 1 }
-let zhVoice = null
-function pickVoice() {
-  const vs = window.speechSynthesis?.getVoices() || []
-  zhVoice = vs.find(v => /^zh[-_]CN/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null
-}
-if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice }
-function spokenText(raw) {
-  const m = String(raw).match(/〔朗读〕([\s\S]*)$/)
-  let t
-  if (m) t = m[1]
-  else {
-    const sents = display(raw).match(/[^。！？!?\n]+[。！？!?]?/g) || []
-    t = sents.slice(0, 2).join('').slice(0, 80)
-  }
-  return t.replace(/\[[一-龥]{1,4}\]/g, '').replace(/〔[^〕]*〕/g, '').replace(/[*#`>$~|\\-]/g, '').replace(/\s+/g, ' ').trim()
-}
-function speakText(text) {
-  if (!speechCfg.enabled || !text) return
-  stopSpeaking()
-  // 有中文语音就用 Chromium 自己的；Linux 上 Chromium 经常一个语音都拿不到，走主进程的 spd-say
-  if (zhVoice) {
-    const u = new SpeechSynthesisUtterance(text)
-    u.voice = zhVoice
-    u.lang = zhVoice.lang || 'zh-CN'
-    u.rate = speechCfg.rate; u.pitch = speechCfg.pitch; u.volume = speechCfg.volume
-    speechSynthesis.speak(u)
-  } else {
-    window.pet.say?.(text, speechCfg)
-  }
-}
-function stopSpeaking() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel()
-  window.pet.sayStop?.()
-}
 
 let connected = false, agentState = 'idle', pendingApprovals = 0, turnOrigin = 'user'
 function setMood() {
@@ -313,9 +265,7 @@ function herText(key, text, replace) {
     turnBubbles.set(key, b)
   }
   const raw = replace ? text : (b.dataset.raw || '') + text
-  b.dataset.raw = raw
-  if (replace) renderMd(b, display(raw))
-  else { b.classList.remove('md'); b.textContent = display(raw) }
+  b.dataset.raw = raw; b.textContent = display(raw)
   scrollDown()
   const tags = [...raw.matchAll(TAG_RE)]
   if (tags.length) { const tag = tags[tags.length - 1][1]; if (tag !== lastTag) { lastTag = tag; window.pet.emotion(tag) } }
@@ -343,7 +293,6 @@ function onEvent(ev) {
       break
     case 'turn-start':
       turnBubbles.clear(); pendingDelta.clear(); turnTexts = []; lastTag = null
-      stopSpeaking()
       turnOrigin = ev.origin || 'user'
       // 屏幕动态引起的回合她多半不开口，先别摆出“正在输入”
       if (turnOrigin !== 'proactive') { showTyping(); setTalking(true) }
@@ -397,8 +346,6 @@ function onEvent(ev) {
         break
       }
       const said = display(turnTexts.join('\n\n'))
-      const spoken = spokenText(turnTexts.join('\n\n'))
-      if (spoken && !dormant) speakText(spoken)
       if (said && !chat.classList.contains('open')) { showSpeech(said); dot.classList.add('show') }
       if (ev.reason === 'error') addNote('她刚才卡住了，再说一遍试试')
       break
@@ -419,7 +366,7 @@ function addThinkCard(ev) {
   const stick = nearBottom()
   const card = document.createElement('div'); card.className = 'thinkcard'
   const head = document.createElement('div'); head.className = 'th'; head.textContent = `💡 后台想好了：${ev.title}（#${ev.id}）`
-  const body = document.createElement('div'); body.className = 'tb'; renderMd(body, String(ev.result))
+  const body = document.createElement('div'); body.className = 'tb'; body.textContent = ev.result
   card.append(head, body)
   if (String(ev.result).length > 90 || String(ev.result).split('\n').length > 3) {
     const more = document.createElement('button'); more.className = 'tm'; more.textContent = '展开全文'
@@ -515,7 +462,6 @@ window.pet.on('pet:init', async (d) => {
   r.setProperty('--pet-w', `${L.petW}px`); r.setProperty('--sprite-h', `${L.spriteH}px`); r.setProperty('--top', `${L.top}px`)
   root.className = `side-${L.side}`
   style = { ...d.style }; defaultStyle = { ...d.defaultStyle }; bubbleSeconds = d.bubbleSeconds
-  if (d.speech) speechCfg = { ...speechCfg, ...d.speech }
   applyStyle(); buildStylePop()
   idleMs = d.idleMs; calm = d.calm
   eye.classList.toggle('show', d.watchSeconds > 0)
@@ -533,7 +479,6 @@ function applyDormant(on) {
   clearTimeout(idleTimer)
   if (dormant) {
     hideSpeech()
-    stopSpeaking()
     stage.title = '她在打盹，点一下叫醒'
     window.pet.emotion('困')
   } else {
@@ -542,7 +487,6 @@ function applyDormant(on) {
   }
 }
 window.pet.on('pet:dormant', applyDormant)
-window.pet.on('speech:set', (cfg) => { speechCfg = { ...speechCfg, ...cfg }; if (!speechCfg.enabled) stopSpeaking() })
 window.pet.on('pet:emotion', (p) => setExpression(p))
 window.pet.on('pet:status', ({ kind, text }) => {
   statusEl.textContent = text || ''
@@ -556,9 +500,7 @@ window.pet.on('chat:history', (list) => {
   for (const e of list) {
     const row = document.createElement('div'); row.className = `row ${e.role === 'user' ? 'me' : 'her'}`
     const b = document.createElement('div'); b.className = `b ${e.role === 'user' ? 'me' : 'her'}`
-    b.dataset.raw = e.text
-    if (e.role === 'user') b.textContent = display(e.text)
-    else renderMd(b, display(e.text))
+    b.dataset.raw = e.text; b.textContent = display(e.text)
     row.appendChild(b); frag.push(row)
   }
   const div = document.createElement('div'); div.className = 'divider'; div.textContent = '以上是之前聊的'

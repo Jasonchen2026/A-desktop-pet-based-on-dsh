@@ -10,7 +10,7 @@
   "port": 0,
   "approvalTimeoutSec": 180,
   "screenFreshSec": 120,
-  "imageMode": "text",
+  "imageMode": "both",
   "_imageMode说明": "both 后台瞄+发消息时细看 / text 只后台瞄 / image 只在发消息时细看",
   "_proactive说明": "off 不主动搭话 / occasional 偶尔（画面明显变化、离上次至少10分钟、你3分钟内没说话） / active 积极（变化就行、间隔3分钟）",
   "proactive": "occasional",

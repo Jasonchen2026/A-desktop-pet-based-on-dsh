@@ -1,9 +1,0 @@
-.qoder/
-neko-pet/logs/
-neko-pet/node_modules/
-neko-pet/package-lock.json
-neko-plugin/neko-bridge/bridge.log
-neko-plugin/neko-bridge/chatlog.jsonl
-neko-plugin/neko-bridge/state.json
-neko/memory/
-*~
